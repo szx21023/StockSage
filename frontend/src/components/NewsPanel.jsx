@@ -1,6 +1,13 @@
 import { useEffect, useState } from 'react'
 import { api } from '../lib/api'
 
+const SENTIMENT_LABEL = { positive: '正面', negative: '負面', neutral: '中性' }
+const SENTIMENT_STYLE = {
+  positive: 'bg-green-900/50 text-green-400',
+  negative: 'bg-red-900/50 text-red-400',
+  neutral: 'bg-slate-700 text-slate-400',
+}
+
 export default function NewsPanel({ ticker }) {
   const [articles, setArticles] = useState([])
   const [loading, setLoading] = useState(false)
@@ -44,13 +51,18 @@ export default function NewsPanel({ ticker }) {
             <div className="text-slate-100 text-sm font-medium leading-snug">
               {article.title}
             </div>
-            <div className="flex gap-2 mt-1 text-xs text-slate-400">
+            <div className="flex items-center gap-2 mt-1 text-xs text-slate-400">
               <span>{article.source}</span>
               {article.published_at && (
                 <>
                   <span>·</span>
                   <span>{formatDate(article.published_at)}</span>
                 </>
+              )}
+              {article.sentiment && (
+                <span className={`ml-auto px-1.5 py-0.5 rounded font-medium ${SENTIMENT_STYLE[article.sentiment]}`}>
+                  {SENTIMENT_LABEL[article.sentiment]}
+                </span>
               )}
             </div>
           </a>

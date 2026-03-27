@@ -87,7 +87,13 @@ async def analyze(ticker: str, company_name: str = "") -> dict:
                 if tool_name == "get_technical_analysis":
                     technical_summary = result.get("price_trend")
                 elif tool_name == "get_news_sentiment":
-                    news_summary = f"共 {result.get('total_fetched', 0)} 篇新聞"
+                    total = result.get("total_fetched", 0)
+                    pos = result.get("positive_count", 0)
+                    neg = result.get("negative_count", 0)
+                    neu = result.get("neutral_count", 0)
+                    overall = result.get("overall_sentiment", "neutral")
+                    overall_zh = {"positive": "正面", "negative": "負面", "neutral": "中性"}.get(overall, "中性")
+                    news_summary = f"共 {total} 篇新聞，整體情緒{overall_zh}（正面 {pos} 篇、負面 {neg} 篇、中性 {neu} 篇）"
                 elif tool_name == "get_fundamental_analysis":
                     fundamental_summary = result.get("valuation_note")
 
