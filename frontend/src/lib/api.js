@@ -34,4 +34,8 @@ export const api = {
   chat: (message, ticker = null) => request('POST', '/chat/', { message, ticker }),
   chatHistory: (ticker = null, limit = 20) =>
     request('GET', `/chat/history?${ticker ? `ticker=${ticker}&` : ''}limit=${limit}`),
+
+  // News
+  getNews: (ticker, companyName = '', limit = 10) =>
+    request('GET', `/news/${ticker}?company_name=${encodeURIComponent(companyName)}&limit=${limit}`),
 }

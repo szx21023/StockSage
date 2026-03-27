@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.db.database import init_db
-from app.api import analyze, watchlist, chat, report
+from app.api import analyze, watchlist, chat, report, news
 
 
 @asynccontextmanager
@@ -30,6 +30,7 @@ app.include_router(analyze.router)
 app.include_router(watchlist.router)
 app.include_router(chat.router)
 app.include_router(report.router)
+app.include_router(news.router)
 
 
 @app.get("/health")
