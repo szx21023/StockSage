@@ -118,24 +118,39 @@ async def analyze(ticker: str, company_name: str = "") -> dict:
 
 
 async def chat(message: str, ticker: str | None = None, history: list[dict] | None = None) -> str:
-    """對話模式，可針對特定 ticker 問答。"""
+    """對話模式，根據用戶意圖決定是否呼叫工具。"""
     messages = history or []
     context = f"目前討論的股票：{ticker}\n\n" if ticker else ""
     messages.append({"role": "user", "content": context + message})
 
-    response = client.messages.create(
-        model="claude-sonnet-4-6",
-        max_tokens=2048,
-        system=SYSTEM_PROMPT,
-        tools=TOOLS,
-        messages=messages,
-    )
+    while True:
+        response = client.messages.create(
+            model="claude-sonnet-4-6",
+            max_tokens=2048,
+            system=SYSTEM_PROMPT,
+            tools=TOOLS,
+            messages=messages,
+        )
 
-    for block in response.content:
-        if hasattr(block, "text"):
-            return block.text
+        if response.stop_reason == "end_turn":
+            for block in response.content:
+                if hasattr(block, "text"):
+                    return block.text
+            return "無法取得回應"
 
-    return "無法取得回應"
+        # 執行工具並繼續 loop
+        tool_results = []
+        for block in response.content:
+            if block.type == "tool_use":
+                result = TOOL_RUNNERS[block.name](block.input)
+                tool_results.append({
+                    "type": "tool_result",
+                    "tool_use_id": block.id,
+                    "content": json.dumps(result, ensure_ascii=False),
+                })
+
+        messages.append({"role": "assistant", "content": response.content})
+        messages.append({"role": "user", "content": tool_results})
 
 
 def _extract_sentiment(text: str) -> str:
