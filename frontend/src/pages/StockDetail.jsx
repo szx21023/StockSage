@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import Chart from '../components/Chart'
 import AnalysisReport from '../components/AnalysisReport'
 import ChatPanel from '../components/ChatPanel'
+import NewsPanel from '../components/NewsPanel'
 import { useAnalysis } from '../hooks/useAnalysis'
 
 export default function StockDetail({ ticker, onBack }) {
@@ -22,7 +23,7 @@ export default function StockDetail({ ticker, onBack }) {
   if (!ticker) return null
 
   return (
-    <div className="flex flex-col gap-4 h-full">
+    <div className="flex flex-col gap-4">
       {/* Ticker header */}
       <div className="flex items-center gap-3">
         <button
@@ -46,8 +47,8 @@ export default function StockDetail({ ticker, onBack }) {
       />
 
       {/* Analysis + Chat side by side */}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4" style={{ minHeight: '400px' }}>
-        <div className="lg:col-span-3">
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+        <div className="lg:col-span-3 h-[500px] overflow-y-auto">
           <AnalysisReport
             report={report}
             analyzing={analyzing}
@@ -55,10 +56,13 @@ export default function StockDetail({ ticker, onBack }) {
             ticker={ticker}
           />
         </div>
-        <div className="lg:col-span-2">
+        <div className="lg:col-span-2 h-[500px]">
           <ChatPanel ticker={ticker} />
         </div>
       </div>
+
+      {/* News */}
+      <NewsPanel ticker={ticker} />
     </div>
   )
 }
