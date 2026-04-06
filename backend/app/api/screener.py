@@ -1,7 +1,7 @@
 import asyncio
 from typing import Literal
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
 from pydantic import BaseModel, field_validator
 
 from app.services.market_data import scan_single_ticker
@@ -17,7 +17,7 @@ class FilterCondition(BaseModel):
     rsi_min: float | None = None
     rsi_max: float | None = None
     macd_cross: Literal["golden", "dead"] | None = None
-    macd_hist_rising: bool | None = None
+    macd_hist_positive: bool | None = None
     price_above_ma20: bool | None = None
     price_above_ma60: bool | None = None
     ma20_above_ma60: bool | None = None
@@ -52,13 +52,6 @@ class ScanResponse(BaseModel):
     scanned: int
     matched: int
     results: list[TickerScanResult]
-
-
-def _resolve_ticker(ticker: str, market: str | None = None) -> str:
-    """台股自動補 .TW 後綴。"""
-    if market == "TW" and not ticker.endswith(".TW"):
-        return f"{ticker}.TW"
-    return ticker
 
 
 @router.post("/scan", response_model=ScanResponse)

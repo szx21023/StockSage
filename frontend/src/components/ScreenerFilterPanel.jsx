@@ -163,8 +163,8 @@ export default function ScreenerFilterPanel({
           ))}
         </div>
         <CheckboxRow
-          checked={filters.macd_hist_rising === true}
-          onChange={(v) => onUpdateFilter('macd_hist_rising', v ? true : null)}
+          checked={filters.macd_hist_positive === true}
+          onChange={(v) => onUpdateFilter('macd_hist_positive', v ? true : null)}
           label="MACD 柱為正（動能向上）"
         />
       </Section>

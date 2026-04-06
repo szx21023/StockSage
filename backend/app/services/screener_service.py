@@ -43,7 +43,7 @@ def evaluate_conditions(ind: dict, filters: "FilterCondition") -> list[str]:
         elif filters.macd_cross == "dead" and macd < macd_signal:
             matched.append("macd_dead_cross")
 
-    if filters.macd_hist_rising is True and macd_hist is not None:
+    if filters.macd_hist_positive is True and macd_hist is not None:
         if macd_hist > 0:
             matched.append("macd_hist_positive")
 
@@ -88,7 +88,7 @@ def count_active_filters(filters: "FilterCondition") -> int:
         count += 1
     if filters.macd_cross is not None:
         count += 1
-    if filters.macd_hist_rising is True:
+    if filters.macd_hist_positive is True:
         count += 1
     if filters.price_above_ma20 is True:
         count += 1

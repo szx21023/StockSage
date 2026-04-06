@@ -6,7 +6,7 @@ const DEFAULT_FILTERS = {
   rsi_min: null,
   rsi_max: null,
   macd_cross: null,
-  macd_hist_rising: null,
+  macd_hist_positive: null,
   price_above_ma20: null,
   price_above_ma60: null,
   ma20_above_ma60: null,
