@@ -38,4 +38,8 @@ export const api = {
   // News
   getNews: (ticker, companyName = '', limit = 10) =>
     request('GET', `/news/${ticker}?company_name=${encodeURIComponent(companyName)}&limit=${limit}`),
+
+  // Screener
+  screenerScan: (tickers, filters, logic = 'AND') =>
+    request('POST', '/screener/scan', { tickers, filters, logic }),
 }

@@ -77,6 +77,31 @@ def get_fundamentals(ticker: str) -> dict:
     }
 
 
+def _derive_trend(ind: dict) -> str:
+    """根據均線和收盤價推導趨勢方向。"""
+    close = ind.get("close")
+    ma20 = ind.get("ma20")
+    ma60 = ind.get("ma60")
+    if close is None or ma20 is None or ma60 is None:
+        return "neutral"
+    if close > ma20 and ma20 > ma60:
+        return "bullish"
+    if close < ma20 and ma20 < ma60:
+        return "bearish"
+    return "neutral"
+
+
+def scan_single_ticker(ticker: str) -> dict:
+    """同步掃描單支股票的技術指標，供 asyncio.to_thread 使用。"""
+    try:
+        df = get_price_history(ticker, period="6mo")
+        ind = get_technical_indicators(df)
+        ind["trend"] = _derive_trend(ind)
+        return {"ticker": ticker, "indicators": ind, "error": None}
+    except Exception as e:
+        return {"ticker": ticker, "indicators": None, "error": str(e)}
+
+
 def get_ohlcv_for_chart(ticker: str, period: str = "6mo") -> list[dict]:
     """回傳前端 TradingView 所需的 OHLCV 格式。"""
     df = get_price_history(ticker, period)

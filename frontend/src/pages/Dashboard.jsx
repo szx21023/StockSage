@@ -1,19 +1,26 @@
 import { useState } from 'react'
 import Watchlist from '../components/Watchlist'
 import StockDetail from './StockDetail'
+import ScreenerPage from './ScreenerPage'
 import ChatPanel from '../components/ChatPanel'
 import { useWatchlist } from '../hooks/useWatchlist'
 
 export default function Dashboard() {
   const { items, loading, add, remove } = useWatchlist()
+  const [currentView, setCurrentView] = useState('home') // 'home' | 'stock' | 'screener'
   const [selectedTicker, setSelectedTicker] = useState(null)
   const [searchInput, setSearchInput] = useState('')
+
+  const handleSelectTicker = (ticker) => {
+    setSelectedTicker(ticker)
+    setCurrentView('stock')
+  }
 
   const handleSearch = (e) => {
     e.preventDefault()
     const ticker = searchInput.trim().toUpperCase()
     if (ticker) {
-      setSelectedTicker(ticker)
+      handleSelectTicker(ticker)
       setSearchInput('')
     }
   }
@@ -29,7 +36,7 @@ export default function Dashboard() {
         </div>
 
         {/* Search */}
-        <form onSubmit={handleSearch} className="mb-4">
+        <form onSubmit={handleSearch} className="mb-3">
           <input
             className="w-full bg-[#0f1117] border border-[#2d3148] rounded-lg px-3 py-2 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-indigo-600 transition-colors"
             placeholder="搜尋 Ticker..."
@@ -38,6 +45,18 @@ export default function Dashboard() {
           />
         </form>
 
+        {/* Nav */}
+        <button
+          onClick={() => setCurrentView('screener')}
+          className={`w-full text-left px-3 py-2 rounded-lg text-sm mb-3 transition-colors ${
+            currentView === 'screener'
+              ? 'bg-indigo-600 text-white'
+              : 'text-slate-400 hover:bg-[#1a1d27] hover:text-slate-200'
+          }`}
+        >
+          技術面篩選
+        </button>
+
         {/* Watchlist */}
         <div className="flex-1 min-h-0">
           <Watchlist
@@ -45,7 +64,7 @@ export default function Dashboard() {
             loading={loading}
             onAdd={add}
             onRemove={remove}
-            onSelect={setSelectedTicker}
+            onSelect={handleSelectTicker}
             selectedTicker={selectedTicker}
           />
         </div>
@@ -53,13 +72,20 @@ export default function Dashboard() {
 
       {/* Main */}
       <main className="flex-1 overflow-y-auto p-6">
-        {selectedTicker ? (
+        {currentView === 'screener' && (
+          <ScreenerPage
+            watchlistItems={items}
+            onSelectTicker={handleSelectTicker}
+          />
+        )}
+        {currentView === 'stock' && selectedTicker && (
           <StockDetail
             ticker={selectedTicker}
-            onBack={() => setSelectedTicker(null)}
+            onBack={() => setCurrentView('home')}
           />
-        ) : (
-          <Welcome onSearch={(t) => setSelectedTicker(t)} />
+        )}
+        {currentView === 'home' && (
+          <Welcome onSearch={handleSelectTicker} />
         )}
       </main>
     </div>
