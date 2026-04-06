@@ -1,6 +1,6 @@
 # StockSage - 專案規劃
 
-_最後更新：2026-03-24（進度更新）_
+_最後更新：2026-04-06（技術面篩選頁面）_
 
 ---
 
@@ -53,7 +53,8 @@ StockSage/
 │   │   │   ├── analyze.py           # POST /analyze/{ticker}
 │   │   │   ├── watchlist.py         # CRUD /watchlist
 │   │   │   ├── chat.py              # POST /chat
-│   │   │   └── report.py            # GET /report/{ticker}
+│   │   │   ├── report.py            # GET /report/{ticker}
+│   │   │   └── news.py              # GET /news/{ticker}
 │   │   ├── agent/
 │   │   │   ├── orchestrator.py      # Claude Tool Calling 主控
 │   │   │   └── tools/
@@ -80,7 +81,8 @@ StockSage/
 │   │   │   ├── Chart.jsx            # TradingView K 線圖
 │   │   │   ├── AnalysisReport.jsx   # AI 分析報告
 │   │   │   ├── Watchlist.jsx        # 自選股管理
-│   │   │   └── ChatPanel.jsx        # 對話介面
+│   │   │   ├── ChatPanel.jsx        # 對話介面
+│   │   │   └── NewsPanel.jsx        # 近期新聞（含情緒標籤）
 │   │   ├── hooks/
 │   │   │   ├── useAnalysis.js
 │   │   │   └── useWatchlist.js
@@ -197,20 +199,33 @@ CREATE TABLE conversations (
 - [ ] 實際打 `/analyze/{ticker}` 測試 Claude Agent 完整流程（需填入真實 ANTHROPIC_API_KEY）
 
 ### Phase 2 - 前端 + 視覺化
-- [ ] React + Vite + TailwindCSS 初始化
-- [ ] TradingView Lightweight Charts K 線圖元件
-- [ ] AI 分析報告呈現（AnalysisReport.jsx）
-- [ ] 自選股管理介面（Watchlist.jsx）
+- [x] React + Vite + TailwindCSS 初始化
+- [x] TradingView Lightweight Charts K 線圖元件
+- [x] AI 分析報告呈現（AnalysisReport.jsx）
+- [x] 自選股管理介面（Watchlist.jsx）
+- [x] ChatPanel 對話介面
+- [x] Docker 前端容器化（nginx 靜態部署）
 
 ### Phase 3 - 新聞 + 基本面
-- [ ] NewsAPI / RSS 整合 + 情緒分析（news.py）
-- [ ] FMP API 財報數據整合（fundamental.py）
-- [ ] 三維綜合報告（orchestrator 整合三個工具）
-- [ ] ChatPanel 對話介面
+- [x] NewsAPI / RSS 整合（news.py，含 Google News RSS fallback）
+- [x] 基本面數據整合（fundamental.py，使用 yfinance）
+- [x] 三維綜合報告（orchestrator 整合三個工具）
+- [x] 新聞情緒分析（關鍵字詞典，每篇文章評分 -1.0 ~ 1.0）
+- [x] 新聞面板（NewsPanel.jsx，顯示於股票詳情頁最下方，含情緒標籤）
+- [x] `GET /api/news/{ticker}` 端點，新聞結果存入 news_cache
+- [x] Chat agentic loop（根據用戶意圖自動決定呼叫哪些工具）
+- [ ] FMP API 財報數據整合（fundamental.py，目前用 yfinance 替代）
 
-### Phase 4 - 日常使用功能
+### Phase 4 - 技術面篩選（Screener）
+- [x] `POST /screener/scan` API（asyncio.to_thread 並發掃描，最多 30 支）
+- [x] screener_service.py 篩選邏輯（AND/OR、趨勢、RSI、MACD、均線、布林通道）
+- [x] ScreenerPage + ScreenerFilterPanel + ScreenerResultTable 前端元件
+- [x] useScreener hook（狀態管理、台股自動補 .TW 後綴）
+- [x] Dashboard 整合（currentView 狀態管理，側邊欄導覽按鈕）
+
+### Phase 5 - 日常使用功能
 - [ ] Telegram Bot（bot/telegram.py）
-- [ ] APScheduler 每日定時分析（scheduler.py）
+- [ ] APScheduler 每日定時分析（scheduler.py，程式碼已寫好但未啟用）
 - [ ] 異常警報推送
 
 ---
@@ -253,3 +268,4 @@ Phase 1 + Phase 2 完成即達到 MVP：
 | 有意見的 AI | 不只呈現數據，給出判斷理由 |
 | 自己在用 | 面試可說「這是我每天看盤前用的工具」 |
 | 完整全端 | FastAPI 後端 + React 前端 + Telegram Bot |
+| 股票篩選器 | 多條件技術面篩選（RSI、MACD、均線、布林通道），並發掃描自選股池 |
