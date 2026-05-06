@@ -5,7 +5,7 @@ import ChatPanel from '../components/ChatPanel'
 import NewsPanel from '../components/NewsPanel'
 import { useAnalysis } from '../hooks/useAnalysis'
 
-export default function StockDetail({ ticker, onBack }) {
+export default function StockDetail({ ticker, onBack, onOpenOrder }) {
   const { report, chartData, analyzing, loadingChart, error, analyze, loadLatestReport, loadChart } = useAnalysis()
   const [period, setPeriod] = useState('6mo')
 
@@ -35,6 +35,14 @@ export default function StockDetail({ ticker, onBack }) {
         <h1 className="text-xl font-bold text-slate-100">{ticker}</h1>
         {error && (
           <span className="text-red-400 text-sm">{error}</span>
+        )}
+        {onOpenOrder && (
+          <button
+            onClick={() => onOpenOrder(ticker)}
+            className="ml-auto text-xs px-3 py-1.5 bg-emerald-900/60 border border-emerald-700 text-emerald-300 hover:bg-emerald-800/60 rounded-lg transition-colors"
+          >
+            模擬下單
+          </button>
         )}
       </div>
 

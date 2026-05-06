@@ -1,6 +1,10 @@
+import logging
+
 import pandas as pd
 import ta
 import yfinance as yf
+
+logger = logging.getLogger(__name__)
 
 
 def get_price_history(ticker: str, period: str = "6mo") -> pd.DataFrame:
@@ -51,6 +55,25 @@ def get_technical_indicators(df: pd.DataFrame) -> dict:
         "bb_mid": safe("BB_mid"),
         "bb_lower": safe("BB_lower"),
     }
+
+
+def get_current_price(ticker: str) -> float | None:
+    """取得即時股價（最後成交價）。盤後 / 假日 / 無資料回傳 None。"""
+    stock = yf.Ticker(ticker)
+    # 優先使用 fast_info（較輕量），退而求其次打 1 日分 K
+    try:
+        last = stock.fast_info.last_price
+        if last is not None and not pd.isna(last):
+            return round(float(last), 4)
+    except Exception:
+        logger.exception("get_current_price fast_info failed for %s", ticker)
+    try:
+        df = stock.history(period="1d", interval="1m")
+        if not df.empty:
+            return round(float(df["Close"].iloc[-1]), 4)
+    except Exception:
+        logger.exception("get_current_price history fallback failed for %s", ticker)
+    return None
 
 
 def get_fundamentals(ticker: str) -> dict:

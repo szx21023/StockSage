@@ -46,7 +46,7 @@ function ConditionBadges({ conditions }) {
   )
 }
 
-export default function ScreenerResultTable({ results, onSelectTicker }) {
+export default function ScreenerResultTable({ results, onSelectTicker, onOpenOrder }) {
   const matched = results.filter((r) => r.matched)
   const unmatched = results.filter((r) => !r.matched)
   const sorted = [...matched, ...unmatched]
@@ -86,7 +86,12 @@ export default function ScreenerResultTable({ results, onSelectTicker }) {
           </thead>
           <tbody>
             {sorted.map((row) => (
-              <ResultRow key={row.ticker} row={row} onSelectTicker={onSelectTicker} />
+              <ResultRow
+                key={row.ticker}
+                row={row}
+                onSelectTicker={onSelectTicker}
+                onOpenOrder={onOpenOrder}
+              />
             ))}
           </tbody>
         </table>
@@ -99,7 +104,7 @@ function Th({ children }) {
   return <th className="px-4 py-2.5 text-left font-medium">{children}</th>
 }
 
-function ResultRow({ row, onSelectTicker }) {
+function ResultRow({ row, onSelectTicker, onOpenOrder }) {
   const { ticker, matched, matched_conditions, indicators, error } = row
   const dim = !matched ? 'opacity-40' : ''
 
@@ -114,6 +119,8 @@ function ResultRow({ row, onSelectTicker }) {
       </tr>
     )
   }
+
+  const handleOpenOrder = () => onOpenOrder?.(ticker)
 
   const ind = indicators ?? {}
 
@@ -137,12 +144,22 @@ function ResultRow({ row, onSelectTicker }) {
       </td>
       <td className="px-4 py-3">
         {matched && (
-          <button
-            onClick={() => onSelectTicker(ticker.replace('.TW', ''))}
-            className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors whitespace-nowrap"
-          >
-            查看詳情 →
-          </button>
+          <div className="flex items-center gap-3 justify-end whitespace-nowrap">
+            {onOpenOrder && (
+              <button
+                onClick={handleOpenOrder}
+                className="text-xs text-emerald-400 hover:text-emerald-300 transition-colors"
+              >
+                模擬下單
+              </button>
+            )}
+            <button
+              onClick={() => onSelectTicker(ticker)}
+              className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors"
+            >
+              查看詳情 →
+            </button>
+          </div>
         )}
       </td>
     </tr>
