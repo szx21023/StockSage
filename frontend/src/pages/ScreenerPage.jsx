@@ -2,7 +2,7 @@ import ScreenerFilterPanel from '../components/ScreenerFilterPanel'
 import ScreenerResultTable from '../components/ScreenerResultTable'
 import { useScreener } from '../hooks/useScreener'
 
-export default function ScreenerPage({ watchlistItems, onSelectTicker }) {
+export default function ScreenerPage({ watchlistItems, onSelectTicker, onOpenOrder }) {
   const {
     filters,
     logic,
@@ -74,6 +74,7 @@ export default function ScreenerPage({ watchlistItems, onSelectTicker }) {
             <ScreenerResultTable
               results={results.results}
               onSelectTicker={onSelectTicker}
+              onOpenOrder={onOpenOrder}
             />
           )}
         </div>

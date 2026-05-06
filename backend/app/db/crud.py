@@ -1,7 +1,7 @@
 from sqlalchemy import select, desc
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.models import AnalysisResult, Alert, Conversation, NewsCache, PriceCache, Watchlist
+from app.db.models import AnalysisResult, Alert, Conversation, NewsCache, PriceCache, SimulatedOrder, Watchlist
 
 
 # --- Watchlist ---
@@ -137,3 +137,51 @@ async def create_alert(db: AsyncSession, ticker: str, alert_type: str, threshold
     await db.commit()
     await db.refresh(alert)
     return alert
+
+
+# --- Simulated Orders ---
+
+async def create_simulated_order(
+    db: AsyncSession,
+    symbol: str,
+    direction: str,
+    quantity: int,
+    price: float,
+    note: str | None = None,
+) -> SimulatedOrder:
+    order = SimulatedOrder(
+        symbol=symbol.upper(),
+        direction=direction,
+        quantity=quantity,
+        price=price,
+        note=note,
+    )
+    db.add(order)
+    await db.commit()
+    await db.refresh(order)
+    return order
+
+
+async def list_simulated_orders(
+    db: AsyncSession,
+    symbol: str | None = None,
+    direction: str | None = None,
+    limit: int = 100,
+) -> list[SimulatedOrder]:
+    query = select(SimulatedOrder).order_by(desc(SimulatedOrder.created_at)).limit(limit)
+    if symbol:
+        query = query.where(SimulatedOrder.symbol == symbol.upper())
+    if direction:
+        query = query.where(SimulatedOrder.direction == direction)
+    result = await db.execute(query)
+    return list(result.scalars().all())
+
+
+async def delete_simulated_order(db: AsyncSession, order_id: int) -> bool:
+    result = await db.execute(select(SimulatedOrder).where(SimulatedOrder.id == order_id))
+    order = result.scalar_one_or_none()
+    if not order:
+        return False
+    await db.delete(order)
+    await db.commit()
+    return True

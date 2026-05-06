@@ -42,4 +42,17 @@ export const api = {
   // Screener
   screenerScan: (tickers, filters, logic = 'AND') =>
     request('POST', '/screener/scan', { tickers, filters, logic }),
+
+  // Orders (paper trading)
+  listOrders: ({ symbol, direction, limit } = {}) => {
+    const params = new URLSearchParams()
+    if (symbol) params.set('symbol', symbol)
+    if (direction) params.set('direction', direction)
+    if (limit) params.set('limit', String(limit))
+    const qs = params.toString()
+    return request('GET', `/orders/${qs ? `?${qs}` : ''}`)
+  },
+  createOrder: (order) => request('POST', '/orders/', order),
+  deleteOrder: (id) => request('DELETE', `/orders/${id}`),
+  getOrderPrice: (symbol) => request('GET', `/orders/price/${symbol}`),
 }

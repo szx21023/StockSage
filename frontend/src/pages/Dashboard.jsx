@@ -2,14 +2,30 @@ import { useState } from 'react'
 import Watchlist from '../components/Watchlist'
 import StockDetail from './StockDetail'
 import ScreenerPage from './ScreenerPage'
+import SimulatedOrdersPage from './SimulatedOrdersPage'
 import ChatPanel from '../components/ChatPanel'
+import OrderFormModal from '../components/OrderFormModal'
+import Toast from '../components/Toast'
 import { useWatchlist } from '../hooks/useWatchlist'
+import { api } from '../lib/api'
 
 export default function Dashboard() {
   const { items, loading, add, remove } = useWatchlist()
-  const [currentView, setCurrentView] = useState('home') // 'home' | 'stock' | 'screener'
+  const [currentView, setCurrentView] = useState('home') // 'home' | 'stock' | 'screener' | 'orders'
   const [selectedTicker, setSelectedTicker] = useState(null)
   const [searchInput, setSearchInput] = useState('')
+  const [orderModalSymbol, setOrderModalSymbol] = useState(null)
+  const [toast, setToast] = useState(null)
+
+  const handleOpenOrder = (symbol) => setOrderModalSymbol(symbol)
+  const handleCloseOrder = () => setOrderModalSymbol(null)
+  const handleSubmitOrder = async (order) => {
+    await api.createOrder(order)
+    setToast({
+      message: order.direction === 'buy' ? '模擬買單已記錄' : '模擬賣單已記錄',
+      kind: 'success',
+    })
+  }
 
   const handleSelectTicker = (ticker) => {
     setSelectedTicker(ticker)
@@ -48,13 +64,23 @@ export default function Dashboard() {
         {/* Nav */}
         <button
           onClick={() => setCurrentView('screener')}
-          className={`w-full text-left px-3 py-2 rounded-lg text-sm mb-3 transition-colors ${
+          className={`w-full text-left px-3 py-2 rounded-lg text-sm mb-1 transition-colors ${
             currentView === 'screener'
               ? 'bg-indigo-600 text-white'
               : 'text-slate-400 hover:bg-[#1a1d27] hover:text-slate-200'
           }`}
         >
           技術面篩選
+        </button>
+        <button
+          onClick={() => setCurrentView('orders')}
+          className={`w-full text-left px-3 py-2 rounded-lg text-sm mb-3 transition-colors ${
+            currentView === 'orders'
+              ? 'bg-indigo-600 text-white'
+              : 'text-slate-400 hover:bg-[#1a1d27] hover:text-slate-200'
+          }`}
+        >
+          模擬下單紀錄
         </button>
 
         {/* Watchlist */}
@@ -76,18 +102,34 @@ export default function Dashboard() {
           <ScreenerPage
             watchlistItems={items}
             onSelectTicker={handleSelectTicker}
+            onOpenOrder={handleOpenOrder}
           />
         )}
+        {currentView === 'orders' && <SimulatedOrdersPage />}
         {currentView === 'stock' && selectedTicker && (
           <StockDetail
             ticker={selectedTicker}
             onBack={() => setCurrentView('home')}
+            onOpenOrder={handleOpenOrder}
           />
         )}
         {currentView === 'home' && (
           <Welcome onSearch={handleSelectTicker} />
         )}
       </main>
+
+      <OrderFormModal
+        open={orderModalSymbol !== null}
+        symbol={orderModalSymbol}
+        onClose={handleCloseOrder}
+        onSubmit={handleSubmitOrder}
+      />
+
+      <Toast
+        message={toast?.message}
+        kind={toast?.kind}
+        onDismiss={() => setToast(null)}
+      />
     </div>
   )
 }
