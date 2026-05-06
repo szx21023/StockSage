@@ -1,22 +1,27 @@
-import { useState } from 'react'
-import Watchlist from '../components/Watchlist'
+import { useState, useCallback } from 'react'
+import HomePage from './HomePage'
 import StockDetail from './StockDetail'
 import ScreenerPage from './ScreenerPage'
 import SimulatedOrdersPage from './SimulatedOrdersPage'
 import PortfolioPage from './PortfolioPage'
-import ChatPanel from '../components/ChatPanel'
+import ChatPage from './ChatPage'
 import OrderFormModal from '../components/OrderFormModal'
 import Toast from '../components/Toast'
+import Sidebar from '../components/Sidebar'
 import { useWatchlist } from '../hooks/useWatchlist'
 import { api } from '../lib/api'
 
 export default function Dashboard() {
-  const { items, loading, add, remove } = useWatchlist()
-  const [currentView, setCurrentView] = useState('home') // 'home' | 'stock' | 'screener' | 'orders' | 'portfolio'
+  const watchlist = useWatchlist()
+  const [view, setView] = useState('home')
   const [selectedTicker, setSelectedTicker] = useState(null)
-  const [searchInput, setSearchInput] = useState('')
   const [orderModalSymbol, setOrderModalSymbol] = useState(null)
   const [toast, setToast] = useState(null)
+
+  const handleSelectTicker = (ticker) => {
+    setSelectedTicker(ticker)
+    setView('stock')
+  }
 
   const handleOpenOrder = (symbol) => setOrderModalSymbol(symbol)
   const handleCloseOrder = () => setOrderModalSymbol(null)
@@ -28,112 +33,49 @@ export default function Dashboard() {
     })
   }
 
-  const handleSelectTicker = (ticker) => {
-    setSelectedTicker(ticker)
-    setCurrentView('stock')
-  }
-
-  const handleSearch = (e) => {
-    e.preventDefault()
-    const ticker = searchInput.trim().toUpperCase()
-    if (ticker) {
-      handleSelectTicker(ticker)
-      setSearchInput('')
-    }
-  }
+  // Stable callback so child components don't re-trigger Toast's auto-dismiss
+  // timer on every Dashboard render.
+  const showToast = useCallback((message, kind = 'success') => {
+    setToast({ message, kind })
+  }, [])
 
   return (
-    <div className="flex h-screen bg-[#0f1117] text-slate-200 overflow-hidden">
-      {/* Sidebar */}
-      <aside className="w-56 flex-shrink-0 flex flex-col border-r border-[#2d3148] bg-[#13151f] p-4">
-        {/* Logo */}
-        <div className="mb-6">
-          <h1 className="text-lg font-bold text-indigo-400">StockSage</h1>
-          <p className="text-xs text-slate-600">AI 股票分析</p>
-        </div>
+    <div className="flex h-screen overflow-hidden" style={{ background: '#0b1220' }}>
+      <Sidebar
+        view={view}
+        setView={setView}
+        watchlist={watchlist}
+        selectedTicker={selectedTicker}
+        onSelectTicker={handleSelectTicker}
+        onToast={showToast}
+      />
 
-        {/* Search */}
-        <form onSubmit={handleSearch} className="mb-3">
-          <input
-            className="w-full bg-[#0f1117] border border-[#2d3148] rounded-lg px-3 py-2 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-indigo-600 transition-colors"
-            placeholder="搜尋 Ticker..."
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
-          />
-        </form>
-
-        {/* Nav */}
-        <button
-          onClick={() => setCurrentView('screener')}
-          className={`w-full text-left px-3 py-2 rounded-lg text-sm mb-1 transition-colors ${
-            currentView === 'screener'
-              ? 'bg-indigo-600 text-white'
-              : 'text-slate-400 hover:bg-[#1a1d27] hover:text-slate-200'
-          }`}
-        >
-          技術面篩選
-        </button>
-        <button
-          onClick={() => setCurrentView('portfolio')}
-          className={`w-full text-left px-3 py-2 rounded-lg text-sm mb-1 transition-colors ${
-            currentView === 'portfolio'
-              ? 'bg-indigo-600 text-white'
-              : 'text-slate-400 hover:bg-[#1a1d27] hover:text-slate-200'
-          }`}
-        >
-          持倉損益
-        </button>
-        <button
-          onClick={() => setCurrentView('orders')}
-          className={`w-full text-left px-3 py-2 rounded-lg text-sm mb-3 transition-colors ${
-            currentView === 'orders'
-              ? 'bg-indigo-600 text-white'
-              : 'text-slate-400 hover:bg-[#1a1d27] hover:text-slate-200'
-          }`}
-        >
-          模擬下單紀錄
-        </button>
-
-        {/* Watchlist */}
-        <div className="flex-1 min-h-0">
-          <Watchlist
-            items={items}
-            loading={loading}
-            onAdd={add}
-            onRemove={remove}
-            onSelect={handleSelectTicker}
-            selectedTicker={selectedTicker}
-          />
-        </div>
-      </aside>
-
-      {/* Main */}
-      <main className="flex-1 overflow-y-auto p-6">
-        {currentView === 'screener' && (
-          <ScreenerPage
-            watchlistItems={items}
-            onSelectTicker={handleSelectTicker}
-            onOpenOrder={handleOpenOrder}
-          />
-        )}
-        {currentView === 'portfolio' && (
-          <PortfolioPage
-            onSelectTicker={handleSelectTicker}
-            onGoScreener={() => setCurrentView('screener')}
-          />
-        )}
-        {currentView === 'orders' && <SimulatedOrdersPage />}
-        {currentView === 'stock' && selectedTicker && (
-          <StockDetail
-            ticker={selectedTicker}
-            onBack={() => setCurrentView('home')}
-            onOpenOrder={handleOpenOrder}
-          />
-        )}
-        {currentView === 'home' && (
-          <Welcome onSearch={handleSelectTicker} />
-        )}
-      </main>
+      {view === 'home' && (
+        <HomePage
+          watchlist={watchlist}
+          onSelectTicker={handleSelectTicker}
+          setView={setView}
+        />
+      )}
+      {view === 'stock' && (
+        <StockDetail
+          ticker={selectedTicker}
+          onSelectTicker={handleSelectTicker}
+          onOpenOrder={handleOpenOrder}
+        />
+      )}
+      {view === 'screener' && (
+        <ScreenerPage
+          watchlistItems={watchlist.items}
+          onSelectTicker={handleSelectTicker}
+          onOpenOrder={handleOpenOrder}
+        />
+      )}
+      {view === 'portfolio' && (
+        <PortfolioPage onSelectTicker={handleSelectTicker} setView={setView} />
+      )}
+      {view === 'orders' && <SimulatedOrdersPage onToast={showToast} />}
+      {view === 'chat' && <ChatPage selectedTicker={selectedTicker} />}
 
       <OrderFormModal
         open={orderModalSymbol !== null}
@@ -147,56 +89,6 @@ export default function Dashboard() {
         kind={toast?.kind}
         onDismiss={() => setToast(null)}
       />
-    </div>
-  )
-}
-
-function Welcome({ onSearch }) {
-  const [input, setInput] = useState('')
-
-  const handle = (e) => {
-    e.preventDefault()
-    const t = input.trim().toUpperCase()
-    if (t) onSearch(t)
-  }
-
-  return (
-    <div className="flex flex-col items-center justify-center h-full gap-8">
-      <div className="text-center">
-        <h2 className="text-4xl font-bold text-slate-100 mb-2">StockSage</h2>
-        <p className="text-slate-400">AI 驅動的股票分析平台，整合技術面、新聞面、基本面</p>
-      </div>
-
-      <form onSubmit={handle} className="flex gap-2 w-full max-w-md">
-        <input
-          className="flex-1 bg-[#1a1d27] border border-[#2d3148] rounded-lg px-4 py-3 text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-600 text-lg transition-colors"
-          placeholder="輸入股票代號（如 AAPL）"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-        />
-        <button
-          type="submit"
-          className="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-medium rounded-lg transition-colors"
-        >
-          分析
-        </button>
-      </form>
-
-      <div className="grid grid-cols-3 gap-4 w-full max-w-lg">
-        {['AAPL', 'TSLA', 'NVDA', 'MSFT', 'GOOGL', 'AMZN'].map((t) => (
-          <button
-            key={t}
-            onClick={() => onSearch(t)}
-            className="py-2 px-4 bg-[#1a1d27] hover:bg-[#1e2235] border border-[#2d3148] hover:border-indigo-700 text-slate-300 rounded-lg text-sm transition-colors"
-          >
-            {t}
-          </button>
-        ))}
-      </div>
-
-      <div className="w-full max-w-lg h-80">
-        <ChatPanel ticker={null} />
-      </div>
     </div>
   )
 }

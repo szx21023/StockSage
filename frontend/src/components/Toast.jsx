@@ -9,16 +9,16 @@ export default function Toast({ message, kind = 'success', onDismiss, duration =
 
   if (!message) return null
 
-  const colorCls =
+  const cls =
     kind === 'success'
-      ? 'bg-emerald-900/90 border-emerald-700 text-emerald-200'
-      : 'bg-rose-900/90 border-rose-700 text-rose-200'
+      ? 'bg-blue-500/15 border-blue-400/30 text-blue-200'
+      : 'bg-rose-500/15 border-rose-500/30 text-rose-200'
 
   return (
     <div
       role="status"
       aria-live="polite"
-      className={`fixed bottom-6 right-6 z-[60] px-4 py-3 rounded-lg border shadow-lg backdrop-blur-sm text-sm ${colorCls}`}
+      className={`fixed bottom-6 right-6 z-[60] px-4 py-3 rounded-lg border backdrop-blur-md text-sm shadow-lg ${cls}`}
     >
       {message}
     </div>

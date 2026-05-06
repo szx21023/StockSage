@@ -8,7 +8,10 @@ export default function ChatPanel({ ticker }) {
   const bottomRef = useRef(null)
 
   useEffect(() => {
-    api.chatHistory(ticker).then((data) => setMessages(data.messages)).catch(() => {})
+    api
+      .chatHistory(ticker)
+      .then((data) => setMessages(data.messages || []))
+      .catch(() => {})
   }, [ticker])
 
   useEffect(() => {
@@ -16,7 +19,7 @@ export default function ChatPanel({ ticker }) {
   }, [messages])
 
   const send = async (e) => {
-    e.preventDefault()
+    e?.preventDefault()
     if (!input.trim() || sending) return
     const msg = input.trim()
     setInput('')
@@ -33,32 +36,40 @@ export default function ChatPanel({ ticker }) {
   }
 
   return (
-    <div className="flex flex-col h-full bg-[#1a1d27] rounded-xl border border-[#2d3148] overflow-hidden">
-      <div className="px-4 py-3 border-b border-[#2d3148]">
-        <h3 className="text-sm font-medium text-slate-300">
-          AI 助理{ticker ? ` — ${ticker}` : ''}
-        </h3>
+    <div className="flex flex-col h-full">
+      {/* Header */}
+      <div className="px-5 py-3 border-b border-white/5 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <span className="px-2 py-0.5 text-[10px] uppercase tracking-wider rounded bg-blue-500/15 text-blue-300 border border-blue-400/30">
+            AI 對話
+          </span>
+          {ticker && <span className="text-[10px] text-slate-500 font-mono">焦點：{ticker}</span>}
+        </div>
+        <span className="text-[10px] text-slate-500 font-mono">claude-sonnet-4.6</span>
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-3 min-h-0">
+      <div className="flex-1 overflow-y-auto p-5 space-y-4 min-h-0">
         {messages.length === 0 && (
-          <p className="text-slate-600 text-xs text-center mt-8">
+          <div className="text-slate-500 text-sm text-center mt-8">
             {ticker ? `問我關於 ${ticker} 的任何問題` : '問我任何股票問題'}
-          </p>
+          </div>
         )}
         {messages.map((m, i) => (
           <Message key={i} role={m.role} content={m.content} />
         ))}
         {sending && (
-          <div className="flex gap-2 items-start">
-            <div className="w-6 h-6 rounded-full bg-indigo-700 flex-shrink-0 flex items-center justify-center">
-              <span className="text-xs">AI</span>
+          <div className="flex gap-3">
+            <div
+              className="w-8 h-8 rounded-lg flex-shrink-0 flex items-center justify-center text-xs font-medium text-blue-100"
+              style={{ background: 'linear-gradient(135deg,#3b82f6,#0ea5e9)' }}
+            >
+              AI
             </div>
-            <div className="bg-[#1e2235] rounded-lg px-3 py-2">
+            <div className="bg-white/5 border border-white/5 rounded-2xl rounded-bl-sm px-4 py-3">
               <div className="flex gap-1">
                 {[0, 1, 2].map((i) => (
-                  <div
+                  <span
                     key={i}
                     className="w-1.5 h-1.5 bg-slate-500 rounded-full animate-bounce"
                     style={{ animationDelay: `${i * 0.15}s` }}
@@ -72,22 +83,29 @@ export default function ChatPanel({ ticker }) {
       </div>
 
       {/* Input */}
-      <form onSubmit={send} className="p-3 border-t border-[#2d3148] flex gap-2">
-        <input
-          className="flex-1 bg-[#0f1117] border border-[#2d3148] rounded-lg px-3 py-2 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-indigo-600 transition-colors"
-          placeholder="輸入問題..."
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          disabled={sending}
-        />
-        <button
-          type="submit"
-          disabled={sending || !input.trim()}
-          className="px-3 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white text-sm rounded-lg transition-colors"
+      <div className="border-t border-white/5 p-4">
+        <form
+          onSubmit={send}
+          className="bg-white/5 border border-white/10 rounded-xl flex items-end gap-2 px-4 py-3 focus-within:border-blue-400/40"
         >
-          送出
-        </button>
-      </form>
+          <span className="text-blue-400">✨</span>
+          <input
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            disabled={sending}
+            className="flex-1 bg-transparent text-sm text-slate-200 outline-none placeholder-slate-500 min-w-0"
+            placeholder={ticker ? `問我關於 ${ticker} 的任何問題…` : '輸入問題…'}
+          />
+          <button
+            type="submit"
+            disabled={sending || !input.trim()}
+            className="px-3 py-1 text-xs text-blue-100 rounded-lg disabled:opacity-50"
+            style={{ background: 'linear-gradient(135deg,#3b82f6,#0ea5e9)' }}
+          >
+            送出 ↵
+          </button>
+        </form>
+      </div>
     </div>
   )
 }
@@ -95,22 +113,25 @@ export default function ChatPanel({ ticker }) {
 function Message({ role, content }) {
   const isUser = role === 'user'
   return (
-    <div className={`flex gap-2 items-start ${isUser ? 'flex-row-reverse' : ''}`}>
+    <div className={`flex gap-3 max-w-3xl ${isUser ? 'ml-auto flex-row-reverse' : ''}`}>
       <div
-        className={`w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center text-xs ${
-          isUser ? 'bg-slate-700 text-slate-300' : 'bg-indigo-700 text-indigo-200'
+        className={`w-8 h-8 rounded-lg flex-shrink-0 flex items-center justify-center text-xs font-medium ${
+          isUser ? 'bg-white/10 text-slate-300' : 'text-blue-100'
         }`}
+        style={!isUser ? { background: 'linear-gradient(135deg,#3b82f6,#0ea5e9)' } : {}}
       >
-        {isUser ? 'U' : 'AI'}
+        {isUser ? '你' : 'AI'}
       </div>
-      <div
-        className={`max-w-[85%] rounded-lg px-3 py-2 text-sm leading-relaxed whitespace-pre-wrap ${
-          isUser
-            ? 'bg-indigo-900/40 text-indigo-100'
-            : 'bg-[#1e2235] text-slate-200'
-        }`}
-      >
-        {content}
+      <div className="flex-1 min-w-0">
+        <div
+          className={`px-4 py-3 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap ${
+            isUser
+              ? 'bg-blue-500/15 text-blue-50 border border-blue-400/20 rounded-br-sm'
+              : 'bg-white/5 text-slate-200 border border-white/5 rounded-bl-sm'
+          }`}
+        >
+          {content}
+        </div>
       </div>
     </div>
   )

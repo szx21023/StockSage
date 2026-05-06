@@ -13,26 +13,25 @@ export default function ScreenerFilterPanel({
   scanning,
 }) {
   return (
-    <div className="bg-[#1a1d27] border border-[#2d3148] rounded-xl p-5 space-y-5">
-      {/* 標題列 */}
+    <div className="space-y-5 text-xs">
       <div className="flex items-center justify-between">
-        <h2 className="text-slate-100 font-semibold text-sm">篩選條件</h2>
+        <div className="text-sm font-medium text-white">篩選條件</div>
         <button
+          type="button"
           onClick={onReset}
-          className="text-xs text-slate-500 hover:text-slate-300 transition-colors"
+          className="text-[11px] text-slate-500 hover:text-slate-300"
         >
           重設
         </button>
       </div>
 
-      {/* Ticker 來源 */}
       <Section label="股票池">
-        <div className="flex gap-2 mb-2">
+        <div className="grid grid-cols-2 gap-2">
           <SourceBtn
             active={tickerSource === 'watchlist'}
             onClick={() => onSetTickerSource('watchlist')}
           >
-            自選股（{watchlistCount} 支）
+            自選股 ・ {watchlistCount}
           </SourceBtn>
           <SourceBtn
             active={tickerSource === 'manual'}
@@ -43,176 +42,153 @@ export default function ScreenerFilterPanel({
         </div>
         {tickerSource === 'manual' && (
           <textarea
-            className="w-full bg-[#0f1117] border border-[#2d3148] rounded-lg px-3 py-2 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-indigo-600 resize-none transition-colors"
+            className="w-full mt-2 bg-black/30 border border-white/10 rounded-lg px-3 py-2 text-xs text-slate-200 placeholder-slate-600 outline-none focus:border-blue-400/40 resize-none"
             rows={3}
-            placeholder="AAPL, TSLA, NVDA（逗號或換行分隔）"
+            placeholder="AAPL, TSLA, NVDA"
             value={manualInput}
             onChange={(e) => onSetManualInput(e.target.value)}
           />
         )}
       </Section>
 
-      {/* AND / OR */}
-      <Section label="條件組合">
-        <div className="flex gap-2">
-          {['AND', 'OR'].map((l) => (
-            <button
-              key={l}
-              onClick={() => onSetLogic(l)}
-              className={`px-4 py-1.5 rounded-full text-xs font-medium transition-colors ${
-                logic === l
-                  ? 'bg-indigo-600 text-white'
-                  : 'bg-[#0f1117] text-slate-400 border border-[#2d3148] hover:border-indigo-700'
-              }`}
-            >
-              {l === 'AND' ? 'AND（全部符合）' : 'OR（任一符合）'}
-            </button>
-          ))}
+      <Section label="條件邏輯">
+        <div className="bg-white/5 rounded-lg p-1 grid grid-cols-2 gap-1">
+          <LogicBtn active={logic === 'AND'} onClick={() => onSetLogic('AND')}>
+            AND
+          </LogicBtn>
+          <LogicBtn active={logic === 'OR'} onClick={() => onSetLogic('OR')}>
+            OR
+          </LogicBtn>
         </div>
       </Section>
 
-      {/* 趨勢 */}
       <Section label="趨勢方向">
-        <div className="flex gap-2">
-          {[
-            { value: null, label: '不限' },
-            { value: 'bullish', label: '往上（多頭）' },
-            { value: 'bearish', label: '往下（空頭）' },
-          ].map(({ value, label }) => (
-            <button
-              key={String(value)}
-              onClick={() => onUpdateFilter('trend', value)}
-              className={`px-3 py-1.5 rounded-lg text-xs transition-colors ${
-                filters.trend === value
-                  ? value === 'bullish'
-                    ? 'bg-emerald-700 text-emerald-100'
-                    : value === 'bearish'
-                    ? 'bg-rose-700 text-rose-100'
-                    : 'bg-indigo-600 text-white'
-                  : 'bg-[#0f1117] text-slate-400 border border-[#2d3148] hover:border-indigo-700'
-              }`}
-            >
-              {label}
-            </button>
-          ))}
+        <div className="grid grid-cols-3 gap-1.5">
+          <TrendBtn
+            active={filters.trend === 'bullish'}
+            kind="bullish"
+            onClick={() => onUpdateFilter('trend', filters.trend === 'bullish' ? null : 'bullish')}
+          >
+            ↑ 多頭
+          </TrendBtn>
+          <TrendBtn
+            active={filters.trend === null}
+            kind="neutral"
+            onClick={() => onUpdateFilter('trend', null)}
+          >
+            → 不限
+          </TrendBtn>
+          <TrendBtn
+            active={filters.trend === 'bearish'}
+            kind="bearish"
+            onClick={() => onUpdateFilter('trend', filters.trend === 'bearish' ? null : 'bearish')}
+          >
+            ↓ 空頭
+          </TrendBtn>
         </div>
       </Section>
 
-      {/* RSI */}
-      <Section label="RSI">
-        <div className="flex flex-wrap gap-2 mb-2">
-          <QuickBtn
-            active={filters.rsi_max === 30 && filters.rsi_min === null}
-            onClick={() => {
-              onUpdateFilter('rsi_min', null)
-              onUpdateFilter('rsi_max', 30)
-            }}
-          >
-            超賣（&lt;30）
-          </QuickBtn>
-          <QuickBtn
-            active={filters.rsi_min === 70 && filters.rsi_max === null}
-            onClick={() => {
-              onUpdateFilter('rsi_min', 70)
-              onUpdateFilter('rsi_max', null)
-            }}
-          >
-            超買（&gt;70）
-          </QuickBtn>
-          <QuickBtn
-            active={filters.rsi_min === null && filters.rsi_max === null}
-            onClick={() => {
-              onUpdateFilter('rsi_min', null)
-              onUpdateFilter('rsi_max', null)
-            }}
-          >
-            不限
-          </QuickBtn>
-        </div>
+      <Section label="RSI 區間">
         <div className="flex items-center gap-2 text-xs text-slate-400">
-          <span>自訂</span>
           <NumberInput
             placeholder="最小"
             value={filters.rsi_min}
             onChange={(v) => onUpdateFilter('rsi_min', v)}
           />
-          <span>~</span>
+          <span>～</span>
           <NumberInput
             placeholder="最大"
             value={filters.rsi_max}
             onChange={(v) => onUpdateFilter('rsi_max', v)}
           />
         </div>
+        <div className="flex flex-wrap gap-1.5 mt-2">
+          <Quick
+            active={filters.rsi_max === 30 && filters.rsi_min === null}
+            onClick={() => {
+              onUpdateFilter('rsi_min', null)
+              onUpdateFilter('rsi_max', 30)
+            }}
+          >
+            超賣 &lt;30
+          </Quick>
+          <Quick
+            active={filters.rsi_min === 70 && filters.rsi_max === null}
+            onClick={() => {
+              onUpdateFilter('rsi_min', 70)
+              onUpdateFilter('rsi_max', null)
+            }}
+          >
+            超買 &gt;70
+          </Quick>
+        </div>
       </Section>
 
-      {/* MACD */}
       <Section label="MACD">
-        <div className="flex flex-wrap gap-2 mb-2">
-          {[
-            { value: null, label: '不限' },
-            { value: 'golden', label: '金叉（MACD > Signal）' },
-            { value: 'dead', label: '死叉（MACD < Signal）' },
-          ].map(({ value, label }) => (
-            <QuickBtn
-              key={String(value)}
-              active={filters.macd_cross === value}
-              onClick={() => onUpdateFilter('macd_cross', value)}
-            >
-              {label}
-            </QuickBtn>
-          ))}
-        </div>
-        <CheckboxRow
+        <Checkbox
+          checked={filters.macd_cross === 'golden'}
+          onChange={(v) => onUpdateFilter('macd_cross', v ? 'golden' : null)}
+        >
+          MACD 金叉
+        </Checkbox>
+        <Checkbox
           checked={filters.macd_hist_positive === true}
           onChange={(v) => onUpdateFilter('macd_hist_positive', v ? true : null)}
-          label="MACD 柱為正（動能向上）"
-        />
+        >
+          MACD 柱為正
+        </Checkbox>
+        <Checkbox
+          checked={filters.macd_cross === 'dead'}
+          onChange={(v) => onUpdateFilter('macd_cross', v ? 'dead' : null)}
+        >
+          MACD 死叉
+        </Checkbox>
       </Section>
 
-      {/* 均線 */}
       <Section label="均線">
-        <div className="space-y-1.5">
-          <CheckboxRow
-            checked={filters.price_above_ma20 === true}
-            onChange={(v) => onUpdateFilter('price_above_ma20', v ? true : null)}
-            label="價格 > MA20"
-          />
-          <CheckboxRow
-            checked={filters.price_above_ma60 === true}
-            onChange={(v) => onUpdateFilter('price_above_ma60', v ? true : null)}
-            label="價格 > MA60"
-          />
-          <CheckboxRow
-            checked={filters.ma20_above_ma60 === true}
-            onChange={(v) => onUpdateFilter('ma20_above_ma60', v ? true : null)}
-            label="MA20 > MA60（多頭排列）"
-          />
-        </div>
+        <Checkbox
+          checked={filters.price_above_ma20 === true}
+          onChange={(v) => onUpdateFilter('price_above_ma20', v ? true : null)}
+        >
+          價格 &gt; MA20
+        </Checkbox>
+        <Checkbox
+          checked={filters.ma20_above_ma60 === true}
+          onChange={(v) => onUpdateFilter('ma20_above_ma60', v ? true : null)}
+        >
+          MA20 &gt; MA60（多頭排列）
+        </Checkbox>
+        <Checkbox
+          checked={filters.price_above_ma60 === true}
+          onChange={(v) => onUpdateFilter('price_above_ma60', v ? true : null)}
+        >
+          價格 &gt; MA60
+        </Checkbox>
       </Section>
 
-      {/* 布林通道 */}
       <Section label="布林通道">
-        <div className="space-y-1.5">
-          <CheckboxRow
-            checked={filters.bb_breakout_upper === true}
-            onChange={(v) => onUpdateFilter('bb_breakout_upper', v ? true : null)}
-            label="價格突破上軌"
-          />
-          <CheckboxRow
-            checked={filters.bb_near_lower === true}
-            onChange={(v) => onUpdateFilter('bb_near_lower', v ? true : null)}
-            label="價格靠近下軌（±2%）"
-          />
-        </div>
+        <Checkbox
+          checked={filters.bb_breakout_upper === true}
+          onChange={(v) => onUpdateFilter('bb_breakout_upper', v ? true : null)}
+        >
+          價格突破上軌
+        </Checkbox>
+        <Checkbox
+          checked={filters.bb_near_lower === true}
+          onChange={(v) => onUpdateFilter('bb_near_lower', v ? true : null)}
+        >
+          價格靠近下軌
+        </Checkbox>
       </Section>
 
-      {/* 掃描按鈕 */}
       <button
+        type="button"
         onClick={onScan}
         disabled={scanning}
-        className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium rounded-lg text-sm transition-colors"
+        className="w-full py-2.5 text-sm font-medium text-white rounded-lg disabled:opacity-50"
+        style={{ background: 'linear-gradient(135deg,#3b82f6,#0ea5e9)' }}
       >
-        {scanning ? '掃描中...' : '開始掃描'}
+        {scanning ? '掃描中…' : `開始掃描 ・ ${watchlistCount} 支`}
       </button>
     </div>
   )
@@ -221,8 +197,8 @@ export default function ScreenerFilterPanel({
 function Section({ label, children }) {
   return (
     <div>
-      <p className="text-xs text-slate-500 mb-2 font-medium uppercase tracking-wide">{label}</p>
-      {children}
+      <div className="text-[10px] uppercase tracking-wider text-slate-500 mb-2">{label}</div>
+      <div className="space-y-1">{children}</div>
     </div>
   )
 }
@@ -230,11 +206,12 @@ function Section({ label, children }) {
 function SourceBtn({ active, onClick, children }) {
   return (
     <button
+      type="button"
       onClick={onClick}
-      className={`px-3 py-1.5 rounded-lg text-xs transition-colors ${
+      className={`py-2 rounded-lg text-xs ${
         active
-          ? 'bg-indigo-600 text-white'
-          : 'bg-[#0f1117] text-slate-400 border border-[#2d3148] hover:border-indigo-700'
+          ? 'bg-blue-500/15 border border-blue-400/30 text-blue-300'
+          : 'bg-white/5 border border-white/10 text-slate-400 hover:text-slate-200'
       }`}
     >
       {children}
@@ -242,14 +219,13 @@ function SourceBtn({ active, onClick, children }) {
   )
 }
 
-function QuickBtn({ active, onClick, children }) {
+function LogicBtn({ active, onClick, children }) {
   return (
     <button
+      type="button"
       onClick={onClick}
-      className={`px-3 py-1.5 rounded-lg text-xs transition-colors ${
-        active
-          ? 'bg-indigo-600 text-white'
-          : 'bg-[#0f1117] text-slate-400 border border-[#2d3148] hover:border-indigo-700'
+      className={`py-1.5 rounded-md text-xs ${
+        active ? 'bg-blue-500 text-white font-medium' : 'text-slate-400 hover:text-slate-200'
       }`}
     >
       {children}
@@ -257,16 +233,62 @@ function QuickBtn({ active, onClick, children }) {
   )
 }
 
-function CheckboxRow({ checked, onChange, label }) {
+function TrendBtn({ active, kind, onClick, children }) {
+  const colors = {
+    bullish: active
+      ? 'bg-rose-500/15 text-rose-300 border-rose-500/30'
+      : 'bg-white/5 text-slate-400 border-white/10',
+    bearish: active
+      ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
+      : 'bg-white/5 text-slate-400 border-white/10',
+    neutral: active
+      ? 'bg-blue-500/15 text-blue-300 border-blue-500/30'
+      : 'bg-white/5 text-slate-400 border-white/10',
+  }
   return (
-    <label className="flex items-center gap-2 cursor-pointer text-sm text-slate-300 hover:text-slate-100 transition-colors">
+    <button
+      type="button"
+      onClick={onClick}
+      className={`py-2 rounded-lg border text-xs ${colors[kind]}`}
+    >
+      {children}
+    </button>
+  )
+}
+
+function Quick({ active, onClick, children }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`px-2 py-1 rounded text-[10px] border ${
+        active
+          ? 'bg-blue-500/15 text-blue-300 border-blue-400/30'
+          : 'bg-white/5 text-slate-400 border-white/10 hover:text-slate-200'
+      }`}
+    >
+      {children}
+    </button>
+  )
+}
+
+function Checkbox({ checked, onChange, children }) {
+  return (
+    <label className="flex items-center gap-2 py-1 cursor-pointer text-slate-300 hover:text-slate-100">
+      <span
+        className={`w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 ${
+          checked ? 'bg-blue-500 border-blue-500' : 'border-slate-600 bg-transparent'
+        }`}
+      >
+        {checked && <span className="text-white text-[9px]">✓</span>}
+      </span>
       <input
         type="checkbox"
+        className="sr-only"
         checked={checked}
         onChange={(e) => onChange(e.target.checked)}
-        className="w-4 h-4 rounded accent-indigo-600"
       />
-      {label}
+      <span>{children}</span>
     </label>
   )
 }
@@ -275,7 +297,7 @@ function NumberInput({ placeholder, value, onChange }) {
   return (
     <input
       type="number"
-      className="w-20 bg-[#0f1117] border border-[#2d3148] rounded px-2 py-1 text-xs text-slate-200 placeholder-slate-600 focus:outline-none focus:border-indigo-600 transition-colors"
+      className="w-20 bg-black/30 border border-white/10 rounded px-2 py-1 text-xs text-slate-200 placeholder-slate-600 outline-none focus:border-blue-400/40 num"
       placeholder={placeholder}
       value={value ?? ''}
       onChange={(e) => {

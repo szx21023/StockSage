@@ -37,7 +37,7 @@ export function useAnalysis() {
     try {
       const result = await api.chartData(ticker, period)
       setChartData(result.data)
-    } catch (e) {
+    } catch {
       setChartData([])
     } finally {
       setLoadingChart(false)

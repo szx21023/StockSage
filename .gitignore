@@ -12,5 +12,9 @@ venv/
 # Docker
 *.log
 
+# SQLite dev DBs
+*.db
+*.db-journal
+
 # OS
 .DS_Store

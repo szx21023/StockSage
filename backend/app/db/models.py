@@ -1,10 +1,13 @@
 from datetime import datetime
 
-from sqlalchemy import BigInteger, Boolean, DateTime, Float, Integer, String, Text, UniqueConstraint, func
+from sqlalchemy import BigInteger, Boolean, DateTime, Float, Integer, JSON, String, Text, UniqueConstraint, func
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.database import Base
+
+# JSONB on Postgres for jsonb operators; JSON elsewhere (e.g. SQLite dev).
+JSONType = JSON().with_variant(JSONB(), "postgresql")
 
 
 class Watchlist(Base):
@@ -29,7 +32,7 @@ class AnalysisResult(Base):
     fundamental_summary: Mapped[str | None] = mapped_column(Text)
     overall_summary: Mapped[str | None] = mapped_column(Text)
     sentiment: Mapped[str | None] = mapped_column(String(10))  # "bullish", "bearish", "neutral"
-    raw_data: Mapped[dict | None] = mapped_column(JSONB)
+    raw_data: Mapped[dict | None] = mapped_column(JSONType)
 
 
 class Alert(Base):
