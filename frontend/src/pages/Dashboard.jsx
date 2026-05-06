@@ -3,6 +3,7 @@ import Watchlist from '../components/Watchlist'
 import StockDetail from './StockDetail'
 import ScreenerPage from './ScreenerPage'
 import SimulatedOrdersPage from './SimulatedOrdersPage'
+import PortfolioPage from './PortfolioPage'
 import ChatPanel from '../components/ChatPanel'
 import OrderFormModal from '../components/OrderFormModal'
 import Toast from '../components/Toast'
@@ -11,7 +12,7 @@ import { api } from '../lib/api'
 
 export default function Dashboard() {
   const { items, loading, add, remove } = useWatchlist()
-  const [currentView, setCurrentView] = useState('home') // 'home' | 'stock' | 'screener' | 'orders'
+  const [currentView, setCurrentView] = useState('home') // 'home' | 'stock' | 'screener' | 'orders' | 'portfolio'
   const [selectedTicker, setSelectedTicker] = useState(null)
   const [searchInput, setSearchInput] = useState('')
   const [orderModalSymbol, setOrderModalSymbol] = useState(null)
@@ -73,6 +74,16 @@ export default function Dashboard() {
           技術面篩選
         </button>
         <button
+          onClick={() => setCurrentView('portfolio')}
+          className={`w-full text-left px-3 py-2 rounded-lg text-sm mb-1 transition-colors ${
+            currentView === 'portfolio'
+              ? 'bg-indigo-600 text-white'
+              : 'text-slate-400 hover:bg-[#1a1d27] hover:text-slate-200'
+          }`}
+        >
+          持倉損益
+        </button>
+        <button
           onClick={() => setCurrentView('orders')}
           className={`w-full text-left px-3 py-2 rounded-lg text-sm mb-3 transition-colors ${
             currentView === 'orders'
@@ -103,6 +114,12 @@ export default function Dashboard() {
             watchlistItems={items}
             onSelectTicker={handleSelectTicker}
             onOpenOrder={handleOpenOrder}
+          />
+        )}
+        {currentView === 'portfolio' && (
+          <PortfolioPage
+            onSelectTicker={handleSelectTicker}
+            onGoScreener={() => setCurrentView('screener')}
           />
         )}
         {currentView === 'orders' && <SimulatedOrdersPage />}

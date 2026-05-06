@@ -55,4 +55,8 @@ export const api = {
   createOrder: (order) => request('POST', '/orders/', order),
   deleteOrder: (id) => request('DELETE', `/orders/${id}`),
   getOrderPrice: (symbol) => request('GET', `/orders/price/${symbol}`),
+
+  // Portfolio (positions & P&L)
+  getPortfolioPositions: () => request('GET', '/portfolio/positions'),
+  getPortfolioSummary: () => request('GET', '/portfolio/summary'),
 }

@@ -9,6 +9,7 @@ from app.db import crud
 from app.db.database import get_db
 from app.db.models import SimulatedOrder
 from app.services.market_data import get_current_price
+from app.services.portfolio import compute_position_for_symbol
 
 router = APIRouter(prefix="/orders", tags=["orders"])
 
@@ -45,6 +46,15 @@ async def list_orders(
 
 @router.post("/", status_code=201)
 async def create_order(body: CreateOrderRequest, db: AsyncSession = Depends(get_db)):
+    if body.direction == "sell":
+        existing = await crud.list_orders_for_symbol(db, body.symbol)
+        state = compute_position_for_symbol(body.symbol, existing)
+        if body.quantity > state.quantity:
+            raise HTTPException(
+                status_code=422,
+                detail=f"目前 {body.symbol.upper()} 僅持有 {state.quantity} 股，無法賣出 {body.quantity} 股",
+            )
+
     # 價格由後端即時抓取，忽略前端傳入，防止竄改
     price = await asyncio.to_thread(get_current_price, body.symbol)
     if price is None:
