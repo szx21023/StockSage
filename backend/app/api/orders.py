@@ -1,3 +1,4 @@
+import asyncio
 from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -45,7 +46,7 @@ async def list_orders(
 @router.post("/", status_code=201)
 async def create_order(body: CreateOrderRequest, db: AsyncSession = Depends(get_db)):
     # 價格由後端即時抓取，忽略前端傳入，防止竄改
-    price = get_current_price(body.symbol)
+    price = await asyncio.to_thread(get_current_price, body.symbol)
     if price is None:
         raise HTTPException(
             status_code=422,
@@ -72,7 +73,7 @@ async def delete_order(order_id: int, db: AsyncSession = Depends(get_db)):
 
 @router.get("/price/{symbol}")
 async def get_price(symbol: str):
-    price = get_current_price(symbol)
+    price = await asyncio.to_thread(get_current_price, symbol)
     if price is None:
         raise HTTPException(
             status_code=422,

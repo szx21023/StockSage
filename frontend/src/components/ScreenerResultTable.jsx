@@ -154,7 +154,7 @@ function ResultRow({ row, onSelectTicker, onOpenOrder }) {
               </button>
             )}
             <button
-              onClick={() => onSelectTicker(ticker.replace('.TW', ''))}
+              onClick={() => onSelectTicker(ticker)}
               className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors"
             >
               查看詳情 →

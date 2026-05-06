@@ -29,7 +29,7 @@ export default function OrderFormModal({ open, symbol, onClose, onSubmit }) {
       .finally(() => setPriceLoading(false))
   }, [open, symbol])
 
-  // Focus trap + ESC to close
+  // ESC to close + initial focus on dialog (no Tab trap)
   useEffect(() => {
     if (!open) return
     const handleKey = (e) => {
