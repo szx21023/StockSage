@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.db.database import init_db
-from app.api import analyze, watchlist, chat, report, news, orders, screener
+from app.api import analyze, watchlist, chat, report, news, orders, portfolio, screener
 
 
 @asynccontextmanager
@@ -32,6 +32,7 @@ app.include_router(chat.router)
 app.include_router(report.router)
 app.include_router(news.router)
 app.include_router(orders.router)
+app.include_router(portfolio.router)
 app.include_router(screener.router)
 
 

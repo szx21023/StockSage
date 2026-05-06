@@ -177,6 +177,20 @@ async def list_simulated_orders(
     return list(result.scalars().all())
 
 
+async def list_orders_for_symbol(db: AsyncSession, symbol: str) -> list[SimulatedOrder]:
+    result = await db.execute(
+        select(SimulatedOrder)
+        .where(SimulatedOrder.symbol == symbol.upper())
+        .order_by(SimulatedOrder.created_at)
+    )
+    return list(result.scalars().all())
+
+
+async def list_all_orders(db: AsyncSession) -> list[SimulatedOrder]:
+    result = await db.execute(select(SimulatedOrder).order_by(SimulatedOrder.created_at))
+    return list(result.scalars().all())
+
+
 async def delete_simulated_order(db: AsyncSession, order_id: int) -> bool:
     result = await db.execute(select(SimulatedOrder).where(SimulatedOrder.id == order_id))
     order = result.scalar_one_or_none()
